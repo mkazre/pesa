@@ -68,6 +68,15 @@ class PSAB_Admin_Menus {
 
         add_submenu_page(
             'pesa-shop-app-builder',
+            __('Menus', 'pesa-shop-app-builder'),
+            __('Menus', 'pesa-shop-app-builder'),
+            'manage_options',
+            'psab-menus',
+            array($this, 'menus_page')
+        );
+
+        add_submenu_page(
+            'pesa-shop-app-builder',
             __('Settings', 'pesa-shop-app-builder'),
             __('Settings', 'pesa-shop-app-builder'),
             'manage_options',
@@ -105,6 +114,18 @@ class PSAB_Admin_Menus {
         <div class="wrap">
             <h1><?php esc_html_e('Manage Pages', 'pesa-shop-app-builder'); ?></h1>
             <div id="psab-pages-root"></div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Menus page
+     */
+    public function menus_page() {
+        ?>
+        <div class="wrap">
+            <h1><?php esc_html_e('Manage Menus', 'pesa-shop-app-builder'); ?></h1>
+            <div id="psab-menus-root"></div>
         </div>
         <?php
     }

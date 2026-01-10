@@ -1179,5 +1179,477 @@
 
     $(document).ready(() => {
         PSABBuilder.init();
+        PSABMenus.init();
     });
+})(jQuery);
+
+/**
+ * PESA Shop App Builder - Menu Manager
+ */
+(function($) {
+    'use strict';
+
+    window.PSABMenus = {
+        currentMenu: null,
+        pages: [],
+
+        init() {
+            const $root = $('#psab-menus-root');
+            if ($root.length) {
+                this.loadPages();
+                this.renderMenusList();
+            }
+        },
+
+        loadPages() {
+            $.ajax({
+                url: psabAdmin.restUrl + 'pages',
+                method: 'GET',
+                async: false,
+                success: (response) => {
+                    this.pages = response;
+                }
+            });
+        },
+
+        renderMenusList() {
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus',
+                method: 'GET',
+                success: (response) => {
+                    this.renderMenusTable(response);
+                },
+                error: () => {
+                    $('#psab-menus-root').html('<p>Error loading menus</p>');
+                }
+            });
+        },
+
+        renderMenusTable(menus) {
+            const $root = $('#psab-menus-root');
+
+            let html = '<div class="psab-menus-header" style="margin-bottom: 20px;">';
+            html += '<button class="button button-primary" id="psab-create-menu">+ Create New Menu</button>';
+            html += '</div>';
+
+            html += '<table class="wp-list-table widefat fixed striped">';
+            html += '<thead><tr>';
+            html += '<th>Menu Name</th>';
+            html += '<th>Position</th>';
+            html += '<th>Items</th>';
+            html += '<th>Status</th>';
+            html += '<th>Actions</th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            menus.forEach((menu) => {
+                html += '<tr>';
+                html += `<td><strong>${menu.menu_name}</strong><br><code>${menu.menu_key}</code></td>`;
+                html += `<td>${menu.menu_position}</td>`;
+                html += `<td>${menu.items?.length || 0} items</td>`;
+                html += `<td>${menu.is_active ? '<span style="color: green;">●</span> Active' : '<span style="color: red;">●</span> Inactive'}</td>`;
+                html += '<td>';
+                html += `<button class="button button-small psab-edit-menu" data-menu-id="${menu.id}">Edit</button> `;
+                html += `<button class="button button-small psab-delete-menu" data-menu-id="${menu.id}">Delete</button>`;
+                html += '</td>';
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            $root.html(html);
+
+            $('#psab-create-menu').on('click', () => this.showCreateMenuModal());
+            $('.psab-edit-menu').on('click', (e) => this.editMenu($(e.currentTarget).data('menu-id')));
+            $('.psab-delete-menu').on('click', (e) => this.deleteMenu($(e.currentTarget).data('menu-id')));
+        },
+
+        showCreateMenuModal() {
+            const modalHtml = `
+                <div class="psab-modal" id="psab-menu-modal">
+                    <div class="psab-modal__overlay"></div>
+                    <div class="psab-modal__content" style="max-width: 600px;">
+                        <div class="psab-modal__header">
+                            <h2>Create New Menu</h2>
+                            <button class="psab-modal__close">×</button>
+                        </div>
+                        <div class="psab-modal__body">
+                            <div class="psab-form-field">
+                                <label>Menu Name *</label>
+                                <input type="text" id="menu-name" placeholder="e.g., Main Navigation" />
+                            </div>
+                            <div class="psab-form-field">
+                                <label>Menu Key *</label>
+                                <input type="text" id="menu-key" placeholder="e.g., main-navigation" />
+                                <small>Unique identifier (lowercase, hyphens only)</small>
+                            </div>
+                            <div class="psab-form-field">
+                                <label>Position *</label>
+                                <select id="menu-position">
+                                    <option value="bottom">Bottom</option>
+                                    <option value="top">Top</option>
+                                    <option value="left">Left</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="psab-modal__footer">
+                            <button class="psab-button psab-button--secondary psab-modal__cancel">Cancel</button>
+                            <button class="psab-button psab-button--primary" id="psab-menu-submit">Create Menu</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+
+            $('#psab-menu-modal .psab-modal__close, #psab-menu-modal .psab-modal__cancel, #psab-menu-modal .psab-modal__overlay').on('click', () => {
+                $('#psab-menu-modal').remove();
+            });
+
+            $('#menu-name').on('input', (e) => {
+                const name = $(e.target).val();
+                const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                $('#menu-key').val(key);
+            });
+
+            $('#psab-menu-submit').on('click', () => this.createMenu());
+        },
+
+        createMenu() {
+            const name = $('#menu-name').val().trim();
+            const key = $('#menu-key').val().trim();
+            const position = $('#menu-position').val();
+
+            if (!name || !key) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus',
+                method: 'POST',
+                beforeSend: (xhr) => {
+                    xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
+                },
+                data: {
+                    menu_name: name,
+                    menu_key: key,
+                    menu_position: position,
+                },
+                success: (response) => {
+                    $('#psab-menu-modal').remove();
+                    this.editMenu(response.id);
+                },
+                error: (xhr) => {
+                    alert(xhr.responseJSON?.message || 'Failed to create menu');
+                },
+            });
+        },
+
+        editMenu(menuId) {
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus/' + menuId,
+                method: 'GET',
+                success: (menu) => {
+                    this.currentMenu = menu;
+                    this.showMenuEditor(menu);
+                },
+                error: () => {
+                    alert('Failed to load menu');
+                }
+            });
+        },
+
+        showMenuEditor(menu) {
+            const $root = $('#psab-menus-root');
+
+            let html = '<div class="psab-menu-editor">';
+            html += '<div style="margin-bottom: 20px;">';
+            html += `<button class="button" id="psab-back-to-menus">← Back to Menus</button>`;
+            html += `<button class="button button-primary" id="psab-save-menu" style="float: right;">Save Menu</button>`;
+            html += '</div>';
+
+            html += '<div style="display: flex; gap: 20px;">';
+
+            // Left panel - Menu Settings
+            html += '<div style="flex: 0 0 300px; background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px;">';
+            html += '<h2>Menu Settings</h2>';
+
+            html += '<div class="psab-form-field">';
+            html += '<label>Menu Name</label>';
+            html += `<input type="text" id="menu-name-edit" value="${menu.menu_name}" />`;
+            html += '</div>';
+
+            html += '<div class="psab-form-field">';
+            html += '<label>Position</label>';
+            html += '<select id="menu-position-edit">';
+            html += `<option value="bottom" ${menu.menu_position === 'bottom' ? 'selected' : ''}>Bottom</option>`;
+            html += `<option value="top" ${menu.menu_position === 'top' ? 'selected' : ''}>Top</option>`;
+            html += `<option value="left" ${menu.menu_position === 'left' ? 'selected' : ''}>Left</option>`;
+            html += `<option value="right" ${menu.menu_position === 'right' ? 'selected' : ''}>Right</option>`;
+            html += '</select>';
+            html += '</div>';
+
+            html += '<h3 style="margin-top: 30px;">Layout Options</h3>';
+
+            html += '<div class="psab-form-field">';
+            html += '<label>Layout Style</label>';
+            html += '<select id="menu-layout">';
+            html += `<option value="tabs" ${menu.menu_config?.layout === 'tabs' ? 'selected' : ''}>Tabs</option>`;
+            html += `<option value="list" ${menu.menu_config?.layout === 'list' ? 'selected' : ''}>List</option>`;
+            html += `<option value="grid" ${menu.menu_config?.layout === 'grid' ? 'selected' : ''}>Grid</option>`;
+            html += '</select>';
+            html += '</div>';
+
+            html += '<div class="psab-form-field">';
+            html += `<label><input type="checkbox" id="menu-show-labels" ${menu.menu_config?.showLabels ? 'checked' : ''} /> Show Labels</label>`;
+            html += '</div>';
+
+            html += '<div class="psab-form-field">';
+            html += `<label><input type="checkbox" id="menu-show-icons" ${menu.menu_config?.showIcons ? 'checked' : ''} /> Show Icons</label>`;
+            html += '</div>';
+
+            html += '<h3 style="margin-top: 30px;">Colors</h3>';
+
+            html += '<div class="psab-form-field">';
+            html += '<label>Background Color</label>';
+            html += `<input type="color" id="menu-bg-color" value="${menu.menu_config?.backgroundColor || '#ffffff'}" />`;
+            html += '</div>';
+
+            html += '<div class="psab-form-field">';
+            html += '<label>Active Color</label>';
+            html += `<input type="color" id="menu-active-color" value="${menu.menu_config?.activeColor || '#2271b1'}" />`;
+            html += '</div>';
+
+            html += '<div class="psab-form-field">';
+            html += '<label>Inactive Color</label>';
+            html += `<input type="color" id="menu-inactive-color" value="${menu.menu_config?.inactiveColor || '#999999'}" />`;
+            html += '</div>';
+
+            html += '</div>';
+
+            // Right panel - Menu Items
+            html += '<div style="flex: 1; background: #fff; padding: 20px; border: 1px solid #ccd0d4; border-radius: 4px;">';
+            html += '<h2>Menu Items</h2>';
+            html += '<button class="button" id="psab-add-menu-item" style="margin-bottom: 15px;">+ Add Menu Item</button>';
+            html += '<div id="psab-menu-items-list"></div>';
+            html += '</div>';
+
+            html += '</div>';
+            html += '</div>';
+
+            $root.html(html);
+
+            $('#psab-back-to-menus').on('click', () => this.renderMenusList());
+            $('#psab-save-menu').on('click', () => this.saveMenu());
+            $('#psab-add-menu-item').on('click', () => this.showAddMenuItemModal());
+
+            this.renderMenuItems();
+        },
+
+        renderMenuItems() {
+            const $list = $('#psab-menu-items-list');
+            if (!this.currentMenu.items || this.currentMenu.items.length === 0) {
+                $list.html('<p style="color: #666;">No menu items yet. Click "Add Menu Item" to get started.</p>');
+                return;
+            }
+
+            let html = '<div class="psab-menu-items">';
+            this.currentMenu.items.forEach((item, index) => {
+                html += this.renderMenuItem(item, index);
+            });
+            html += '</div>';
+
+            $list.html(html);
+
+            $('.psab-menu-item-delete').on('click', (e) => {
+                const itemId = $(e.currentTarget).data('item-id');
+                this.deleteMenuItem(itemId);
+            });
+        },
+
+        renderMenuItem(item, index) {
+            let html = '<div class="psab-menu-item" style="padding: 15px; margin-bottom: 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">';
+            html += '<div style="display: flex; justify-content: space-between; align-items: center;">';
+            html += '<div>';
+            html += `<strong>${item.item_label}</strong><br>`;
+            html += `<small style="color: #666;">Icon: ${item.item_icon || 'none'} | Target: ${item.item_target}</small>`;
+            html += '</div>';
+            html += '<div>';
+            html += `<button class="button button-small psab-menu-item-delete" data-item-id="${item.id}">Delete</button>`;
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        },
+
+        showAddMenuItemModal() {
+            const modalHtml = `
+                <div class="psab-modal" id="psab-menu-item-modal">
+                    <div class="psab-modal__overlay"></div>
+                    <div class="psab-modal__content">
+                        <div class="psab-modal__header">
+                            <h2>Add Menu Item</h2>
+                            <button class="psab-modal__close">×</button>
+                        </div>
+                        <div class="psab-modal__body">
+                            <div class="psab-form-field">
+                                <label>Label *</label>
+                                <input type="text" id="item-label" placeholder="e.g., Home" />
+                            </div>
+                            <div class="psab-form-field">
+                                <label>Icon</label>
+                                <input type="text" id="item-icon" placeholder="e.g., home, shopping-bag" />
+                                <small>Icon name from your icon library</small>
+                            </div>
+                            <div class="psab-form-field">
+                                <label>Link To *</label>
+                                <select id="item-type">
+                                    <option value="page">Page</option>
+                                    <option value="url">Custom URL</option>
+                                </select>
+                            </div>
+                            <div class="psab-form-field" id="item-target-page">
+                                <label>Select Page</label>
+                                <select id="item-target-page-select">
+                                    ${this.pages.map(page => `<option value="${page.page_key}">${page.page_title}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="psab-form-field" id="item-target-url" style="display: none;">
+                                <label>URL</label>
+                                <input type="text" id="item-target-url-input" placeholder="https://example.com" />
+                            </div>
+                        </div>
+                        <div class="psab-modal__footer">
+                            <button class="psab-button psab-button--secondary psab-modal__cancel">Cancel</button>
+                            <button class="psab-button psab-button--primary" id="psab-menu-item-submit">Add Item</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+
+            $('#psab-menu-item-modal .psab-modal__close, #psab-menu-item-modal .psab-modal__cancel, #psab-menu-item-modal .psab-modal__overlay').on('click', () => {
+                $('#psab-menu-item-modal').remove();
+            });
+
+            $('#item-type').on('change', (e) => {
+                if ($(e.target).val() === 'page') {
+                    $('#item-target-page').show();
+                    $('#item-target-url').hide();
+                } else {
+                    $('#item-target-page').hide();
+                    $('#item-target-url').show();
+                }
+            });
+
+            $('#psab-menu-item-submit').on('click', () => this.createMenuItem());
+        },
+
+        createMenuItem() {
+            const label = $('#item-label').val().trim();
+            const icon = $('#item-icon').val().trim();
+            const type = $('#item-type').val();
+            const target = type === 'page' ? $('#item-target-page-select').val() : $('#item-target-url-input').val().trim();
+
+            if (!label || !target) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus/' + this.currentMenu.id + '/items',
+                method: 'POST',
+                beforeSend: (xhr) => {
+                    xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
+                },
+                data: {
+                    item_label: label,
+                    item_icon: icon,
+                    item_type: type,
+                    item_target: target,
+                    item_order: this.currentMenu.items?.length || 0,
+                },
+                success: () => {
+                    $('#psab-menu-item-modal').remove();
+                    this.editMenu(this.currentMenu.id);
+                },
+                error: (xhr) => {
+                    alert(xhr.responseJSON?.message || 'Failed to create menu item');
+                },
+            });
+        },
+
+        deleteMenuItem(itemId) {
+            if (!confirm('Are you sure you want to delete this menu item?')) {
+                return;
+            }
+
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus/items/' + itemId,
+                method: 'DELETE',
+                beforeSend: (xhr) => {
+                    xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
+                },
+                success: () => {
+                    this.editMenu(this.currentMenu.id);
+                },
+                error: () => {
+                    alert('Failed to delete menu item');
+                }
+            });
+        },
+
+        saveMenu() {
+            const data = {
+                menu_name: $('#menu-name-edit').val(),
+                menu_position: $('#menu-position-edit').val(),
+                menu_config: {
+                    layout: $('#menu-layout').val(),
+                    showLabels: $('#menu-show-labels').is(':checked'),
+                    showIcons: $('#menu-show-icons').is(':checked'),
+                    backgroundColor: $('#menu-bg-color').val(),
+                    activeColor: $('#menu-active-color').val(),
+                    inactiveColor: $('#menu-inactive-color').val(),
+                },
+            };
+
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus/' + this.currentMenu.id,
+                method: 'PUT',
+                beforeSend: (xhr) => {
+                    xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
+                },
+                data: data,
+                success: () => {
+                    alert('Menu saved successfully!');
+                },
+                error: () => {
+                    alert('Failed to save menu');
+                }
+            });
+        },
+
+        deleteMenu(menuId) {
+            if (!confirm('Are you sure you want to delete this menu?')) {
+                return;
+            }
+
+            $.ajax({
+                url: psabAdmin.restUrl + 'menus/' + menuId,
+                method: 'DELETE',
+                beforeSend: (xhr) => {
+                    xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
+                },
+                success: () => {
+                    this.renderMenusList();
+                },
+                error: () => {
+                    alert('Failed to delete menu');
+                }
+            });
+        },
+    };
 })(jQuery);

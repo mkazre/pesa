@@ -3,7 +3,7 @@
  * Plugin Name: PESA Shop - Mobile App Builder
  * Plugin URI: https://github.com/mkazre/pesa
  * Description: A powerful drag-and-drop app builder for creating production-ready WooCommerce mobile apps with complete visual control and flexibility.
- * Version: 1.0.0
+ * Version: 1.0.2
  * Author: PESA Shop
  * Author URI: https://pesashop.com
  * License: GPL v2 or later
@@ -22,7 +22,7 @@
 defined('ABSPATH') || exit;
 
 if (!defined('PSAB_VERSION')) {
-    define('PSAB_VERSION', '1.0.0');
+    define('PSAB_VERSION', '1.0.2');
 }
 
 if (!defined('PSAB_PLUGIN_FILE')) {
@@ -88,6 +88,7 @@ final class PESA_Shop_App_Builder {
         require_once PSAB_PLUGIN_DIR . 'includes/class-psab-install.php';
         require_once PSAB_PLUGIN_DIR . 'includes/class-psab-ajax.php';
         require_once PSAB_PLUGIN_DIR . 'includes/class-psab-page-manager.php';
+        require_once PSAB_PLUGIN_DIR . 'includes/class-psab-menu-manager.php';
         require_once PSAB_PLUGIN_DIR . 'includes/class-psab-block-registry.php';
         require_once PSAB_PLUGIN_DIR . 'includes/class-psab-shortcode-processor.php';
         require_once PSAB_PLUGIN_DIR . 'includes/class-psab-meta-field-processor.php';
@@ -104,6 +105,7 @@ final class PESA_Shop_App_Builder {
         require_once PSAB_PLUGIN_DIR . 'api/class-psab-rest-config-controller.php';
         require_once PSAB_PLUGIN_DIR . 'api/class-psab-rest-pages-controller.php';
         require_once PSAB_PLUGIN_DIR . 'api/class-psab-rest-blocks-controller.php';
+        require_once PSAB_PLUGIN_DIR . 'api/class-psab-rest-menus-controller.php';
     }
 
     /**
