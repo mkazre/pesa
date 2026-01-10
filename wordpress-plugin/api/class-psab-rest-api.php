@@ -43,7 +43,7 @@ class PSAB_REST_API {
      * Initialize REST API
      */
     public function init() {
-        add_action('rest_api_init', array($this, 'register_routes'));
+        $this->register_routes();
     }
 
     /**
