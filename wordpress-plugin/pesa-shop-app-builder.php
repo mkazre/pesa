@@ -12,6 +12,7 @@
  * Domain Path: /languages
  * Requires at least: 5.8
  * Requires PHP: 7.4
+ * Requires Plugins: woocommerce
  * WC requires at least: 5.0
  * WC tested up to: 8.5
  *
@@ -115,6 +116,18 @@ final class PESA_Shop_App_Builder {
         add_action('plugins_loaded', array($this, 'on_plugins_loaded'), -1);
         add_action('init', array($this, 'init'), 0);
         add_action('rest_api_init', array($this, 'init_rest_api'));
+
+        // Declare HPOS compatibility
+        add_action('before_woocommerce_init', array($this, 'declare_hpos_compatibility'));
+    }
+
+    /**
+     * Declare compatibility with WooCommerce High-Performance Order Storage (HPOS)
+     */
+    public function declare_hpos_compatibility() {
+        if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', PSAB_PLUGIN_FILE, true);
+        }
     }
 
     /**
