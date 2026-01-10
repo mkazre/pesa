@@ -54,6 +54,7 @@ class PSAB_REST_API {
             'PSAB_REST_Config_Controller',
             'PSAB_REST_Pages_Controller',
             'PSAB_REST_Blocks_Controller',
+            'PSAB_REST_Menus_Controller',
         );
 
         foreach ($controllers as $controller) {

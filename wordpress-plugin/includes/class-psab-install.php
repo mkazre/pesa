@@ -61,6 +61,7 @@ class PSAB_Install {
         self::create_tables();
         self::create_default_pages();
         self::create_default_blocks();
+        self::create_default_menus();
         self::update_version();
 
         delete_transient('psab_installing');
@@ -142,6 +143,40 @@ class PSAB_Install {
             updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY config_key (config_key)
+        ) $charset_collate;
+
+        CREATE TABLE {$wpdb->prefix}psab_menus (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            menu_key varchar(100) NOT NULL,
+            menu_name varchar(255) NOT NULL,
+            menu_position varchar(50) NOT NULL DEFAULT 'bottom',
+            menu_config longtext NOT NULL,
+            is_active tinyint(1) NOT NULL DEFAULT 1,
+            menu_order int(11) NOT NULL DEFAULT 0,
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY menu_key (menu_key),
+            KEY is_active (is_active)
+        ) $charset_collate;
+
+        CREATE TABLE {$wpdb->prefix}psab_menu_items (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            menu_id bigint(20) NOT NULL,
+            item_label varchar(255) NOT NULL,
+            item_icon varchar(100) DEFAULT NULL,
+            item_type varchar(50) NOT NULL DEFAULT 'page',
+            item_target varchar(255) NOT NULL,
+            item_config longtext DEFAULT NULL,
+            item_order int(11) NOT NULL DEFAULT 0,
+            parent_id bigint(20) DEFAULT NULL,
+            is_active tinyint(1) NOT NULL DEFAULT 1,
+            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY menu_id (menu_id),
+            KEY parent_id (parent_id),
+            KEY is_active (is_active)
         ) $charset_collate;
         ";
 
@@ -275,6 +310,101 @@ class PSAB_Install {
      */
     private static function create_default_blocks() {
         // Reserved for future use: Pre-defined block templates
+    }
+
+    /**
+     * Create default menus
+     */
+    private static function create_default_menus() {
+        global $wpdb;
+
+        $default_menu = array(
+            'menu_key' => 'main-navigation',
+            'menu_name' => 'Main Navigation',
+            'menu_position' => 'bottom',
+            'menu_config' => json_encode(array(
+                'layout' => 'tabs',
+                'showLabels' => true,
+                'showIcons' => true,
+                'backgroundColor' => '#ffffff',
+                'activeColor' => '#2271b1',
+                'inactiveColor' => '#999999',
+                'logoPosition' => 'none',
+                'style' => array(
+                    'height' => 60,
+                    'borderTop' => true,
+                    'shadow' => true,
+                )
+            )),
+            'is_active' => 1,
+            'menu_order' => 1
+        );
+
+        // Check if menu already exists
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$wpdb->prefix}psab_menus WHERE menu_key = %s",
+            $default_menu['menu_key']
+        ));
+
+        if (!$existing) {
+            $result = $wpdb->insert(
+                $wpdb->prefix . 'psab_menus',
+                $default_menu,
+                array('%s', '%s', '%s', '%s', '%d', '%d')
+            );
+
+            if ($result !== false) {
+                $menu_id = $wpdb->insert_id;
+
+                // Create default menu items
+                $default_items = array(
+                    array(
+                        'menu_id' => $menu_id,
+                        'item_label' => 'Home',
+                        'item_icon' => 'home',
+                        'item_type' => 'page',
+                        'item_target' => 'home',
+                        'item_order' => 1,
+                        'is_active' => 1
+                    ),
+                    array(
+                        'menu_id' => $menu_id,
+                        'item_label' => 'Shop',
+                        'item_icon' => 'shopping-bag',
+                        'item_type' => 'page',
+                        'item_target' => 'shop',
+                        'item_order' => 2,
+                        'is_active' => 1
+                    ),
+                    array(
+                        'menu_id' => $menu_id,
+                        'item_label' => 'Cart',
+                        'item_icon' => 'shopping-cart',
+                        'item_type' => 'page',
+                        'item_target' => 'cart',
+                        'item_order' => 3,
+                        'is_active' => 1
+                    ),
+                    array(
+                        'menu_id' => $menu_id,
+                        'item_label' => 'Account',
+                        'item_icon' => 'user',
+                        'item_type' => 'page',
+                        'item_target' => 'account',
+                        'item_order' => 4,
+                        'is_active' => 1
+                    ),
+                );
+
+                foreach ($default_items as $item) {
+                    $wpdb->insert(
+                        $wpdb->prefix . 'psab_menu_items',
+                        $item,
+                        array('%d', '%s', '%s', '%s', '%s', '%d', '%d')
+                    );
+                }
+            }
+        }
     }
 
     /**
