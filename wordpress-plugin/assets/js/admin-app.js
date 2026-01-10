@@ -688,59 +688,379 @@
 
         renderPrimaryProperties(block, blockDef) {
             let html = '';
+            const style = block.config.style || {};
 
-            // Content properties
-            if (block.type === 'text' || block.type === 'heading') {
+            // TEXT ELEMENT
+            if (block.type === 'text') {
                 html += '<div class="psab-prop-group">';
                 html += '<div class="psab-prop-group__title">Content</div>';
-                html += this.renderVisualField('text', 'Text', block.config.text || '', 'textarea');
+                html += this.renderVisualField('text', 'Text Content', block.config.text || '', 'textarea');
+                html += this.renderVisualField('isDynamic', 'Dynamic Content', block.config.isDynamic || false, 'checkbox');
+                if (block.config.isDynamic) {
+                    html += this.renderVisualField('dynamicSource', 'Source', block.config.dynamicSource || '', 'select', {
+                        options: [
+                            {value: 'post_title', label: 'Post Title'},
+                            {value: 'post_content', label: 'Post Content'},
+                            {value: 'product_name', label: 'Product Name'},
+                            {value: 'product_price', label: 'Product Price'},
+                            {value: 'user_name', label: 'User Name'}
+                        ]
+                    });
+                }
                 html += '</div>';
-            }
 
-            if (block.type === 'button') {
                 html += '<div class="psab-prop-group">';
-                html += '<div class="psab-prop-group__title">Content</div>';
-                html += this.renderVisualField('text', 'Button Text', block.config.text || '', 'text');
-                html += this.renderVisualField('link', 'Link URL', block.config.link || '', 'text');
-                html += '</div>';
-            }
-
-            if (block.type === 'image') {
-                html += '<div class="psab-prop-group">';
-                html += '<div class="psab-prop-group__title">Image</div>';
-                html += this.renderVisualField('src', 'Image URL', block.config.src || '', 'text');
-                html += '</div>';
-            }
-
-            // Style properties
-            html += '<div class="psab-prop-group">';
-            html += '<div class="psab-prop-group__title">Typography</div>';
-
-            if (block.type === 'text' || block.type === 'heading' || block.type === 'button') {
-                const style = block.config.style || {};
+                html += '<div class="psab-prop-group__title">Typography</div>';
                 html += this.renderVisualField('style.fontSize', 'Font Size', style.fontSize || 14, 'slider', {min: 8, max: 72, unit: 'px'});
                 html += this.renderVisualField('style.fontWeight', 'Font Weight', style.fontWeight || 'normal', 'select', {
                     options: [
-                        {value: 'normal', label: 'Normal'},
-                        {value: 'bold', label: 'Bold'},
                         {value: '300', label: 'Light'},
+                        {value: 'normal', label: 'Normal'},
                         {value: '600', label: 'Semi Bold'},
+                        {value: 'bold', label: 'Bold'},
                         {value: '900', label: 'Black'}
                     ]
                 });
                 html += this.renderVisualField('style.color', 'Color', style.color || '#000000', 'color');
                 html += this.renderVisualField('style.textAlign', 'Alignment', style.textAlign || 'left', 'alignment');
+                html += '</div>';
             }
 
-            html += '</div>';
-
-            // Layout properties for containers
-            if (block.type === 'container' || block.type === 'row' || block.type === 'column') {
+            // HEADING ELEMENT
+            else if (block.type === 'heading') {
                 html += '<div class="psab-prop-group">';
-                html += '<div class="psab-prop-group__title">Layout</div>';
-                const style = block.config.style || {};
-                html += this.renderVisualField('style.backgroundColor', 'Background', style.backgroundColor || '#ffffff', 'color');
+                html += '<div class="psab-prop-group__title">Content</div>';
+                html += this.renderVisualField('text', 'Heading Text', block.config.text || '', 'textarea');
+                html += this.renderVisualField('level', 'Heading Level', block.config.level || 1, 'select', {
+                    options: [
+                        {value: 1, label: 'H1'},
+                        {value: 2, label: 'H2'},
+                        {value: 3, label: 'H3'},
+                        {value: 4, label: 'H4'},
+                        {value: 5, label: 'H5'},
+                        {value: 6, label: 'H6'}
+                    ]
+                });
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Typography</div>';
+                html += this.renderVisualField('style.fontSize', 'Font Size', style.fontSize || 24, 'slider', {min: 12, max: 72, unit: 'px'});
+                html += this.renderVisualField('style.fontWeight', 'Font Weight', style.fontWeight || 'bold', 'select', {
+                    options: [
+                        {value: '300', label: 'Light'},
+                        {value: 'normal', label: 'Normal'},
+                        {value: '600', label: 'Semi Bold'},
+                        {value: 'bold', label: 'Bold'},
+                        {value: '900', label: 'Black'}
+                    ]
+                });
+                html += this.renderVisualField('style.color', 'Color', style.color || '#000000', 'color');
+                html += this.renderVisualField('style.textAlign', 'Alignment', style.textAlign || 'left', 'alignment');
+                html += '</div>';
+            }
+
+            // IMAGE ELEMENT
+            else if (block.type === 'image') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Image</div>';
+                html += this.renderVisualField('src', 'Image URL', block.config.src || '', 'text');
+                html += '<button class="psab-button psab-button--secondary" style="margin: 10px 0;" onclick="PSABBuilder.openMediaLibrary(\'src\')">Select Image</button>';
+                html += this.renderVisualField('alt', 'Alt Text', block.config.alt || '', 'text');
+                html += this.renderVisualField('fit', 'Image Fit', block.config.fit || 'cover', 'select', {
+                    options: [
+                        {value: 'cover', label: 'Cover'},
+                        {value: 'contain', label: 'Contain'},
+                        {value: 'fill', label: 'Fill'},
+                        {value: 'scale-down', label: 'Scale Down'}
+                    ]
+                });
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Dimensions</div>';
+                html += this.renderVisualField('width', 'Width', block.config.width || '', 'text');
+                html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">e.g., 300 or auto</small>';
+                html += this.renderVisualField('height', 'Height', block.config.height || '', 'text');
+                html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">e.g., 200 or auto</small>';
+                html += '</div>';
+            }
+
+            // BUTTON ELEMENT
+            else if (block.type === 'button') {
+                const action = block.config.action || {type: 'none'};
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Button Content</div>';
+                html += this.renderVisualField('text', 'Button Text', block.config.text || 'Click me', 'text');
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Button Action</div>';
+                html += this.renderVisualField('action.type', 'Action Type', action.type || 'none', 'select', {
+                    options: [
+                        {value: 'none', label: 'No Action'},
+                        {value: 'page', label: 'Navigate to Page'},
+                        {value: 'url', label: 'Open URL'},
+                        {value: 'product', label: 'View Product'},
+                        {value: 'category', label: 'View Category'},
+                        {value: 'cart', label: 'Add to Cart'},
+                        {value: 'checkout', label: 'Go to Checkout'}
+                    ]
+                });
+
+                if (action.type === 'page') {
+                    html += this.renderVisualField('action.pageKey', 'Page', action.pageKey || '', 'text');
+                    html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">Enter page key (e.g., home, shop)</small>';
+                } else if (action.type === 'url') {
+                    html += this.renderVisualField('action.url', 'URL', action.url || '', 'text');
+                    html += this.renderVisualField('action.external', 'Open in Browser', action.external || false, 'checkbox');
+                } else if (action.type === 'product') {
+                    html += this.renderVisualField('action.productId', 'Product ID', action.productId || '', 'text');
+                } else if (action.type === 'category') {
+                    html += this.renderVisualField('action.categoryId', 'Category ID', action.categoryId || '', 'text');
+                } else if (action.type === 'cart') {
+                    html += this.renderVisualField('action.productId', 'Product ID', action.productId || '', 'text');
+                    html += this.renderVisualField('action.quantity', 'Quantity', action.quantity || 1, 'text');
+                }
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Button Style</div>';
+                html += this.renderVisualField('style.backgroundColor', 'Background Color', style.backgroundColor || '#007bff', 'color');
+                html += this.renderVisualField('style.color', 'Text Color', style.color || '#ffffff', 'color');
+                html += this.renderVisualField('style.fontSize', 'Font Size', style.fontSize || 14, 'slider', {min: 10, max: 24, unit: 'px'});
+                html += this.renderVisualField('style.borderRadius', 'Border Radius', style.borderRadius || 4, 'slider', {min: 0, max: 50, unit: 'px'});
+                html += '</div>';
+            }
+
+            // SLIDER / CAROUSEL ELEMENT
+            else if (block.type === 'slider') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Slider Images</div>';
+                html += '<div id="slider-images-list"></div>';
+                html += '<button class="psab-button psab-button--secondary" onclick="PSABBuilder.addSliderImage()">+ Add Image</button>';
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Slider Settings</div>';
+                html += this.renderVisualField('autoPlay', 'Auto Play', block.config.autoPlay !== false, 'checkbox');
+                html += this.renderVisualField('interval', 'Interval (ms)', block.config.interval || 3000, 'text');
+                html += this.renderVisualField('height', 'Height', block.config.height || 200, 'slider', {min: 100, max: 600, unit: 'px'});
+                html += '</div>';
+
+                // Render slider images after HTML is added
+                setTimeout(() => this.renderSliderImages(block.config.images || []), 100);
+            }
+
+            // PRODUCT GRID ELEMENT
+            else if (block.type === 'product_grid') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Product Source</div>';
+                html += this.renderVisualField('source', 'Source', block.config.source || 'latest', 'select', {
+                    options: [
+                        {value: 'latest', label: 'Latest Products'},
+                        {value: 'featured', label: 'Featured Products'},
+                        {value: 'on_sale', label: 'On Sale'},
+                        {value: 'category', label: 'By Category'},
+                        {value: 'ids', label: 'Specific Products (by ID)'}
+                    ]
+                });
+
+                if (block.config.source === 'category') {
+                    html += this.renderVisualField('categoryId', 'Category ID', block.config.categoryId || '', 'text');
+                    html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">Enter WooCommerce category ID</small>';
+                } else if (block.config.source === 'ids') {
+                    html += this.renderVisualField('productIds', 'Product IDs', block.config.productIds || '', 'text');
+                    html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">Comma-separated IDs (e.g., 123, 456, 789)</small>';
+                }
+
+                html += this.renderVisualField('limit', 'Number of Products', block.config.limit || 10, 'slider', {min: 1, max: 50, unit: ''});
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Grid Layout</div>';
+                html += this.renderVisualField('columns', 'Columns', block.config.columns || 2, 'select', {
+                    options: [
+                        {value: 1, label: '1 Column'},
+                        {value: 2, label: '2 Columns'},
+                        {value: 3, label: '3 Columns'},
+                        {value: 4, label: '4 Columns'}
+                    ]
+                });
+                html += '</div>';
+            }
+
+            // PRODUCT LIST ELEMENT
+            else if (block.type === 'product_list') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Product Source</div>';
+                html += this.renderVisualField('source', 'Source', block.config.source || 'latest', 'select', {
+                    options: [
+                        {value: 'latest', label: 'Latest Products'},
+                        {value: 'featured', label: 'Featured Products'},
+                        {value: 'on_sale', label: 'On Sale'},
+                        {value: 'category', label: 'By Category'},
+                        {value: 'ids', label: 'Specific Products (by ID)'}
+                    ]
+                });
+
+                if (block.config.source === 'category') {
+                    html += this.renderVisualField('categoryId', 'Category ID', block.config.categoryId || '', 'text');
+                    html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">Enter WooCommerce category ID</small>';
+                } else if (block.config.source === 'ids') {
+                    html += this.renderVisualField('productIds', 'Product IDs', block.config.productIds || '', 'text');
+                    html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">Comma-separated IDs</small>';
+                }
+
+                html += this.renderVisualField('limit', 'Number of Products', block.config.limit || 10, 'slider', {min: 1, max: 50, unit: ''});
+                html += '</div>';
+            }
+
+            // CATEGORY GRID ELEMENT
+            else if (block.type === 'category_grid') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Category Settings</div>';
+                html += this.renderVisualField('parentId', 'Parent Category ID', block.config.parentId || 0, 'text');
+                html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">0 for all top-level categories</small>';
+                html += this.renderVisualField('limit', 'Number of Categories', block.config.limit || 9, 'slider', {min: 1, max: 50, unit: ''});
+                html += this.renderVisualField('columns', 'Columns', block.config.columns || 3, 'select', {
+                    options: [
+                        {value: 2, label: '2 Columns'},
+                        {value: 3, label: '3 Columns'},
+                        {value: 4, label: '4 Columns'}
+                    ]
+                });
+                html += '</div>';
+            }
+
+            // WEBVIEW ELEMENT
+            else if (block.type === 'webview') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">WebView Settings</div>';
+                html += this.renderVisualField('url', 'URL', block.config.url || '', 'text');
+                html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">Full URL including https://</small>';
+                html += this.renderVisualField('enableAuth', 'Pass User Authentication', block.config.enableAuth || false, 'checkbox');
+                html += this.renderVisualField('height', 'Height', block.config.height || 400, 'slider', {min: 200, max: 1000, unit: 'px'});
+                html += '</div>';
+            }
+
+            // HTML ELEMENT
+            else if (block.type === 'html') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">HTML Content</div>';
+                html += this.renderVisualField('html', 'HTML Code', block.config.html || '', 'textarea');
+                html += '<small style="color: #666; display: block; margin-top: -8px;">Enter custom HTML code</small>';
+                html += '</div>';
+            }
+
+            // SHORTCODE ELEMENT
+            else if (block.type === 'shortcode') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Shortcode</div>';
+                html += this.renderVisualField('shortcode', 'Shortcode', block.config.shortcode || '', 'text');
+                html += '<small style="color: #666; display: block; margin-top: -8px; margin-bottom: 12px;">e.g., [products limit="4"]</small>';
+                html += '</div>';
+            }
+
+            // SPACER ELEMENT
+            else if (block.type === 'spacer') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Spacer Settings</div>';
+                html += this.renderVisualField('height', 'Height', block.config.height || 16, 'slider', {min: 4, max: 200, unit: 'px'});
+                html += '</div>';
+            }
+
+            // DIVIDER ELEMENT
+            else if (block.type === 'divider') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Divider Settings</div>';
+                html += this.renderVisualField('color', 'Color', block.config.color || '#e0e0e0', 'color');
+                html += this.renderVisualField('thickness', 'Thickness', block.config.thickness || 1, 'slider', {min: 1, max: 10, unit: 'px'});
+                html += '</div>';
+            }
+
+            // ROW/COLUMN ALIGNMENT
+            else if (block.type === 'row' || block.type === 'column') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Alignment</div>';
+                html += this.renderVisualField('mainAxisAlignment', 'Main Axis', block.config.mainAxisAlignment || 'start', 'select', {
+                    options: [
+                        {value: 'start', label: 'Start'},
+                        {value: 'center', label: 'Center'},
+                        {value: 'end', label: 'End'},
+                        {value: 'space-between', label: 'Space Between'},
+                        {value: 'space-around', label: 'Space Around'}
+                    ]
+                });
+                html += this.renderVisualField('crossAxisAlignment', 'Cross Axis', block.config.crossAxisAlignment || 'center', 'select', {
+                    options: [
+                        {value: 'start', label: 'Start'},
+                        {value: 'center', label: 'Center'},
+                        {value: 'end', label: 'End'},
+                        {value: 'stretch', label: 'Stretch'}
+                    ]
+                });
+                html += '</div>';
+
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Background</div>';
+                html += this.renderVisualField('style.backgroundColor', 'Background Color', style.backgroundColor || 'transparent', 'color');
                 html += this.renderVisualField('style.padding', 'Padding', style.padding || 0, 'slider', {min: 0, max: 100, unit: 'px'});
+                html += '</div>';
+            }
+
+            // CONTAINER LAYOUT
+            else if (block.type === 'container') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Container Style</div>';
+                html += this.renderVisualField('style.backgroundColor', 'Background Color', style.backgroundColor || 'transparent', 'color');
+                html += this.renderVisualField('style.padding', 'Padding', style.padding || 10, 'slider', {min: 0, max: 100, unit: 'px'});
+                html += '</div>';
+            }
+
+            // ACCOUNT INFO
+            else if (block.type === 'account_info') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Display Fields</div>';
+                const fields = block.config.fields || ['name', 'email'];
+                html += this.renderVisualField('fields.name', 'Show Name', fields.includes('name'), 'checkbox');
+                html += this.renderVisualField('fields.email', 'Show Email', fields.includes('email'), 'checkbox');
+                html += this.renderVisualField('fields.phone', 'Show Phone', fields.includes('phone'), 'checkbox');
+                html += this.renderVisualField('fields.address', 'Show Address', fields.includes('address'), 'checkbox');
+                html += '</div>';
+            }
+
+            // ORDER HISTORY
+            else if (block.type === 'order_history') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Order History Settings</div>';
+                html += this.renderVisualField('limit', 'Number of Orders', block.config.limit || 10, 'slider', {min: 1, max: 50, unit: ''});
+                html += '</div>';
+            }
+
+            // META FIELD
+            else if (block.type === 'meta_field') {
+                html += '<div class="psab-prop-group">';
+                html += '<div class="psab-prop-group__title">Meta Field Settings</div>';
+                html += this.renderVisualField('metaKey', 'Meta Key', block.config.metaKey || '', 'text');
+                html += this.renderVisualField('objectType', 'Object Type', block.config.objectType || 'post', 'select', {
+                    options: [
+                        {value: 'post', label: 'Post'},
+                        {value: 'product', label: 'Product'},
+                        {value: 'user', label: 'User'},
+                        {value: 'term', label: 'Term'}
+                    ]
+                });
+                html += this.renderVisualField('format', 'Format', block.config.format || 'text', 'select', {
+                    options: [
+                        {value: 'text', label: 'Text'},
+                        {value: 'number', label: 'Number'},
+                        {value: 'date', label: 'Date'},
+                        {value: 'image', label: 'Image'},
+                        {value: 'url', label: 'URL'}
+                    ]
+                });
                 html += '</div>';
             }
 
@@ -982,6 +1302,13 @@
                     });
                     html += `</div>`;
                     break;
+
+                case 'checkbox':
+                    html += `<div class="psab-visual-field__checkbox">`;
+                    html += `<input type="checkbox" id="psab-field-${key.replace(/\./g, '-')}" class="psab-visual-field__checkbox-input" data-key="${key}" ${value ? 'checked' : ''} />`;
+                    html += `<label for="psab-field-${key.replace(/\./g, '-')}">${label}</label>`;
+                    html += `</div>`;
+                    break;
             }
 
             html += `</div>`;
@@ -1104,6 +1431,13 @@
                 $(this).siblings().removeClass('active');
                 $(this).addClass('active');
 
+                updateBlockConfig(key, value);
+            });
+
+            // Checkbox inputs
+            $('#psab-sidebar-content').on('change', '.psab-visual-field__checkbox-input', (e) => {
+                const key = $(e.target).data('key');
+                const value = $(e.target).is(':checked');
                 updateBlockConfig(key, value);
             });
 
@@ -1769,6 +2103,64 @@
             }
 
             return html;
+        },
+
+        // Helper: Render slider images
+        renderSliderImages(images) {
+            const $list = $('#slider-images-list');
+            if (!$list.length) return;
+
+            let html = '';
+            images.forEach((img, index) => {
+                html += `<div class="psab-slider-image-item" data-index="${index}">`;
+                html += `<img src="${img.url}" style="width: 60px; height: 60px; object-fit: cover;" />`;
+                html += `<input type="text" class="psab-slider-image-url" value="${img.url}" placeholder="Image URL" />`;
+                html += `<button class="psab-button psab-button--small psab-slider-image-remove" data-index="${index}">Remove</button>`;
+                html += `</div>`;
+            });
+
+            $list.html(html);
+
+            // Event handlers
+            $('.psab-slider-image-url').on('change', (e) => {
+                const index = $(e.target).closest('.psab-slider-image-item').data('index');
+                const block = this.currentPageData.page_config.blocks[this.selectedBlock];
+                if (!block.config.images) block.config.images = [];
+                block.config.images[index].url = $(e.target).val();
+                this.renderCanvas();
+            });
+
+            $('.psab-slider-image-remove').on('click', (e) => {
+                const index = $(e.target).data('index');
+                const block = this.currentPageData.page_config.blocks[this.selectedBlock];
+                block.config.images.splice(index, 1);
+                this.renderSliderImages(block.config.images);
+                this.renderCanvas();
+            });
+        },
+
+        // Helper: Add slider image
+        addSliderImage() {
+            const block = this.currentPageData.page_config.blocks[this.selectedBlock];
+            if (!block.config.images) block.config.images = [];
+
+            block.config.images.push({
+                url: '',
+                caption: ''
+            });
+
+            this.renderSliderImages(block.config.images);
+        },
+
+        // Helper: Open media library (stub for now - would integrate with WordPress media library)
+        openMediaLibrary(configKey) {
+            const url = prompt('Enter image URL:');
+            if (url) {
+                const block = this.currentPageData.page_config.blocks[this.selectedBlock];
+                block.config[configKey] = url;
+                this.renderProperties();
+                this.renderCanvas();
+            }
         },
     };
 
