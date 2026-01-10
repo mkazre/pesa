@@ -31,8 +31,13 @@
                     xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
                 },
                 success: (response) => {
+                    console.log('Blocks loaded:', response);
                     this.blocks = response;
                     this.loadCategories();
+                },
+                error: (xhr, status, error) => {
+                    console.error('Failed to load blocks:', error, xhr);
+                    this.showNotification('Failed to load blocks. Please check browser console for details.', 'error');
                 },
             });
         },
@@ -45,8 +50,13 @@
                     xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
                 },
                 success: (response) => {
+                    console.log('Categories loaded:', response);
                     this.categories = response;
                     this.renderBlocksPalette();
+                },
+                error: (xhr, status, error) => {
+                    console.error('Failed to load categories:', error, xhr);
+                    this.showNotification('Failed to load block categories.', 'error');
                 },
             });
         },
@@ -101,10 +111,18 @@
                     xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
                 },
                 success: (response) => {
+                    console.log('Pages loaded:', response);
                     this.renderPageSelector(response);
                     if (response.length > 0) {
                         this.loadPage(response[0].id);
+                    } else {
+                        this.showNoPagesMessage();
                     }
+                },
+                error: (xhr, status, error) => {
+                    console.error('Failed to load pages:', error, xhr);
+                    this.showNotification('Failed to load pages. Please check browser console for details.', 'error');
+                    this.showNoPagesMessage();
                 },
             });
         },
@@ -136,10 +154,15 @@
                     xhr.setRequestHeader('X-WP-Nonce', psabAdmin.restNonce);
                 },
                 success: (response) => {
+                    console.log('Page loaded:', response);
                     this.currentPage = pageId;
                     this.currentPageData = response;
                     this.renderCanvas();
                     $('.psab-toolbar__page-selector').val(pageId);
+                },
+                error: (xhr, status, error) => {
+                    console.error('Failed to load page:', error, xhr);
+                    this.showNotification('Failed to load page. Please try again.', 'error');
                 },
             });
         },
@@ -506,6 +529,27 @@
             setTimeout(() => {
                 $notification.fadeOut(() => $notification.remove());
             }, 3000);
+        },
+
+        showNoPagesMessage() {
+            const $canvas = $('#psab-canvas');
+            $canvas.html(`
+                <div style="text-align: center; padding: 60px 20px; color: #666;">
+                    <h2 style="margin-bottom: 16px;">No Pages Found</h2>
+                    <p style="margin-bottom: 20px;">
+                        It appears no pages have been created yet.
+                        This might indicate an installation issue.
+                    </p>
+                    <p style="margin-bottom: 20px;">
+                        Please try deactivating and reactivating the plugin to trigger the installation process.
+                    </p>
+                    <p>
+                        <a href="${psabAdmin.siteUrl}/wp-admin/plugins.php" class="button button-primary">
+                            Go to Plugins
+                        </a>
+                    </p>
+                </div>
+            `);
         },
 
         initPagesManager() {
