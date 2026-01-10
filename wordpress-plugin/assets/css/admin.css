@@ -1,0 +1,418 @@
+/**
+ * PESA Shop App Builder - Admin Styles
+ */
+
+/* Main builder container */
+#psab-app-builder-root,
+#psab-pages-root {
+    margin-top: 20px;
+}
+
+/* Builder layout */
+.psab-builder {
+    display: flex;
+    gap: 20px;
+    min-height: 600px;
+}
+
+.psab-builder__sidebar {
+    flex: 0 0 280px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 15px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.psab-builder__canvas {
+    flex: 1;
+    background: #f5f5f5;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    min-height: 600px;
+    position: relative;
+}
+
+.psab-builder__properties {
+    flex: 0 0 320px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 15px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* Blocks palette */
+.psab-blocks-palette {
+    margin-bottom: 20px;
+}
+
+.psab-blocks-palette__category {
+    margin-bottom: 15px;
+}
+
+.psab-blocks-palette__category-title {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.psab-blocks-palette__block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: move;
+    transition: all 0.2s;
+}
+
+.psab-blocks-palette__block:hover {
+    background: #f0f0f0;
+    border-color: #999;
+    transform: translateX(3px);
+}
+
+.psab-blocks-palette__block-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.psab-blocks-palette__block-label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Canvas */
+.psab-canvas {
+    background: #fff;
+    min-height: 500px;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    position: relative;
+}
+
+.psab-canvas--empty::before {
+    content: "Drag blocks here to start building";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #999;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.psab-canvas__block {
+    position: relative;
+    margin-bottom: 10px;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: move;
+    transition: all 0.2s;
+}
+
+.psab-canvas__block:hover {
+    border-color: #2271b1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.psab-canvas__block.selected {
+    border-color: #2271b1;
+    background: #f0f6fc;
+}
+
+.psab-canvas__block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.psab-canvas__block-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1d2327;
+}
+
+.psab-canvas__block-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.psab-canvas__block-action {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.psab-canvas__block-action:hover {
+    background: #e0e0e0;
+    color: #000;
+}
+
+.psab-canvas__block-content {
+    color: #555;
+    font-size: 13px;
+}
+
+/* Properties panel */
+.psab-properties {
+}
+
+.psab-properties__title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #2271b1;
+}
+
+.psab-properties__section {
+    margin-bottom: 20px;
+}
+
+.psab-properties__section-title {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.psab-properties__field {
+    margin-bottom: 15px;
+}
+
+.psab-properties__field-label {
+    display: block;
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 5px;
+    color: #1d2327;
+}
+
+.psab-properties__field-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.psab-properties__field-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 6px 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.psab-properties__field-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.psab-properties__field-checkbox {
+    margin-right: 6px;
+}
+
+/* Toolbar */
+.psab-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.psab-toolbar__left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.psab-toolbar__right {
+    display: flex;
+    gap: 10px;
+}
+
+.psab-toolbar__page-selector {
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+/* Pages table */
+.psab-pages-table {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.psab-pages-table th,
+.psab-pages-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.psab-pages-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.psab-pages-table tr:hover {
+    background: #f9f9f9;
+}
+
+.psab-pages-table__actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Buttons */
+.psab-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.psab-button--primary {
+    background: #2271b1;
+    color: #fff;
+}
+
+.psab-button--primary:hover {
+    background: #135e96;
+}
+
+.psab-button--secondary {
+    background: #f0f0f0;
+    color: #2c3338;
+}
+
+.psab-button--secondary:hover {
+    background: #dcdcde;
+}
+
+.psab-button--danger {
+    background: #d63638;
+    color: #fff;
+}
+
+.psab-button--danger:hover {
+    background: #b32d2e;
+}
+
+/* Drag and drop states */
+.psab-canvas__block.dragging {
+    opacity: 0.5;
+}
+
+.psab-canvas__block.drag-over {
+    border-color: #2271b1;
+    border-style: solid;
+    background: #e6f2ff;
+}
+
+/* Loading spinner */
+.psab-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #2271b1;
+    animation: psab-spin 0.6s linear infinite;
+}
+
+@keyframes psab-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Notifications */
+.psab-notification {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    padding: 12px 20px;
+    background: #fff;
+    border-left: 4px solid #2271b1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    z-index: 999999;
+    animation: psab-slide-in 0.3s;
+}
+
+.psab-notification--success {
+    border-left-color: #00a32a;
+}
+
+.psab-notification--error {
+    border-left-color: #d63638;
+}
+
+@keyframes psab-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .psab-builder {
+        flex-direction: column;
+    }
+
+    .psab-builder__sidebar,
+    .psab-builder__properties {
+        flex: 1;
+        max-height: none;
+    }
+}
