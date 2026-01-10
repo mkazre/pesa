@@ -33,10 +33,11 @@ class PSAB_Install {
      * Check version and run the updater if necessary
      */
     public static function check_version() {
-        $current_db_version = get_option('psab_db_version');
-        $current_version = get_option('psab_version');
+        $current_db_version = get_option('psab_db_version', '0.0.0');
+        $current_version = get_option('psab_version', '0.0.0');
 
-        if (version_compare($current_db_version, PSAB_VERSION, '<')) {
+        // If no version is set or version is outdated, run install
+        if (!$current_db_version || version_compare($current_db_version, PSAB_VERSION, '<')) {
             self::install();
         }
     }
@@ -256,11 +257,15 @@ class PSAB_Install {
             ));
 
             if (!$existing) {
-                $wpdb->insert(
+                $result = $wpdb->insert(
                     $wpdb->prefix . 'psab_pages',
                     $page,
                     array('%s', '%s', '%s', '%s', '%d', '%d')
                 );
+
+                if ($result === false) {
+                    error_log('PSAB: Failed to insert page: ' . $page['page_key'] . ' - Error: ' . $wpdb->last_error);
+                }
             }
         }
     }

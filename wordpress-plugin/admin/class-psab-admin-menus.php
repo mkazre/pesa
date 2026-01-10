@@ -113,6 +113,15 @@ class PSAB_Admin_Menus {
      * Settings page
      */
     public function settings_page() {
+        if (isset($_POST['psab_repair_database'])) {
+            check_admin_referer('psab_repair_database');
+
+            // Force reinstall
+            PSAB_Install::install();
+
+            echo '<div class="notice notice-success"><p>' . esc_html__('Database repaired successfully. Default pages have been reinstalled.', 'pesa-shop-app-builder') . '</p></div>';
+        }
+
         if (isset($_POST['psab_settings_submit'])) {
             check_admin_referer('psab_settings');
 
@@ -193,6 +202,25 @@ class PSAB_Admin_Menus {
                     <input type="submit" name="psab_settings_submit" class="button button-primary" value="<?php esc_attr_e('Save Settings', 'pesa-shop-app-builder'); ?>" />
                 </p>
             </form>
+
+            <hr style="margin: 40px 0;" />
+
+            <div class="card">
+                <h2><?php esc_html_e('Database Maintenance', 'pesa-shop-app-builder'); ?></h2>
+                <p>
+                    <?php esc_html_e('If you are experiencing issues with the App Builder (such as missing pages or blank interface), you can repair the database to reinstall default pages and tables.', 'pesa-shop-app-builder'); ?>
+                </p>
+                <p>
+                    <strong><?php esc_html_e('Note:', 'pesa-shop-app-builder'); ?></strong>
+                    <?php esc_html_e('This will not delete your existing pages. It will only create any missing default pages and tables.', 'pesa-shop-app-builder'); ?>
+                </p>
+                <form method="post" action="" onsubmit="return confirm('<?php echo esc_js(__('Are you sure you want to repair the database?', 'pesa-shop-app-builder')); ?>');">
+                    <?php wp_nonce_field('psab_repair_database'); ?>
+                    <p>
+                        <input type="submit" name="psab_repair_database" class="button button-secondary" value="<?php esc_attr_e('Repair Database', 'pesa-shop-app-builder'); ?>" />
+                    </p>
+                </form>
+            </div>
         </div>
         <?php
     }
