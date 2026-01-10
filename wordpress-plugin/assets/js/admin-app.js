@@ -13,11 +13,14 @@
         categories: {},
 
         init() {
-            this.loadBlocks();
-            this.initPageSelector();
+            // First create the UI structure
             this.initToolbar();
             this.initCanvas();
             this.initPagesManager();
+
+            // Then load data and populate UI
+            this.loadBlocks();
+            this.initPageSelector();
         },
 
         loadBlocks() {
