@@ -1403,11 +1403,11 @@
             html += '</div>';
 
             html += '<div class="psab-form-field">';
-            html += '<label><input type="checkbox" id="menu-show-labels" ${menu.menu_config?.showLabels ? 'checked' : ''} /> Show Labels</label>';
+            html += `<label><input type="checkbox" id="menu-show-labels" ${menu.menu_config?.showLabels ? 'checked' : ''} /> Show Labels</label>`;
             html += '</div>';
 
             html += '<div class="psab-form-field">';
-            html += '<label><input type="checkbox" id="menu-show-icons" ${menu.menu_config?.showIcons ? 'checked' : ''} /> Show Icons</label>';
+            html += `<label><input type="checkbox" id="menu-show-icons" ${menu.menu_config?.showIcons ? 'checked' : ''} /> Show Icons</label>`;
             html += '</div>';
 
             html += '<h3 style="margin-top: 30px;">Colors</h3>';
