@@ -3,7 +3,7 @@
  * Plugin Name: PESA Shop - Mobile App Builder
  * Plugin URI: https://github.com/mkazre/pesa
  * Description: A powerful drag-and-drop app builder for creating production-ready WooCommerce mobile apps with complete visual control and flexibility.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: PESA Shop
  * Author URI: https://pesashop.com
  * License: GPL v2 or later
@@ -22,7 +22,7 @@
 defined('ABSPATH') || exit;
 
 if (!defined('PSAB_VERSION')) {
-    define('PSAB_VERSION', '1.0.4');
+    define('PSAB_VERSION', '1.0.5');
 }
 
 if (!defined('PSAB_PLUGIN_FILE')) {

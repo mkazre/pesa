@@ -11,6 +11,7 @@
         selectedBlock: null,
         blocks: {},
         categories: {},
+        renderDebounceTimer: null,
 
         init() {
             // First create the UI structure
@@ -390,35 +391,67 @@
 
         renderBlockPreview(block) {
             const config = block.config || {};
+            const style = config.style || {};
+
+            // Build inline style string
+            let styleStr = '';
+            if (style.fontSize) styleStr += `font-size: ${style.fontSize}px;`;
+            if (style.fontWeight) styleStr += `font-weight: ${style.fontWeight};`;
+            if (style.color) styleStr += `color: ${style.color};`;
+            if (style.textAlign) styleStr += `text-align: ${style.textAlign};`;
+            if (style.backgroundColor) styleStr += `background-color: ${style.backgroundColor};`;
+            if (style.padding) styleStr += `padding: ${style.padding}px;`;
+            if (style.paddingTop) styleStr += `padding-top: ${style.paddingTop};`;
+            if (style.paddingRight) styleStr += `padding-right: ${style.paddingRight};`;
+            if (style.paddingBottom) styleStr += `padding-bottom: ${style.paddingBottom};`;
+            if (style.paddingLeft) styleStr += `padding-left: ${style.paddingLeft};`;
+            if (style.marginTop) styleStr += `margin-top: ${style.marginTop};`;
+            if (style.marginRight) styleStr += `margin-right: ${style.marginRight};`;
+            if (style.marginBottom) styleStr += `margin-bottom: ${style.marginBottom};`;
+            if (style.marginLeft) styleStr += `margin-left: ${style.marginLeft};`;
+            if (style.borderRadius) styleStr += `border-radius: ${style.borderRadius}px;`;
+            if (style.borderWidth) styleStr += `border-width: ${style.borderWidth}px;`;
+            if (style.borderStyle) styleStr += `border-style: ${style.borderStyle};`;
+            if (style.borderColor) styleStr += `border-color: ${style.borderColor};`;
+            if (style.width) styleStr += `width: ${style.width};`;
+            if (style.height) styleStr += `height: ${style.height};`;
+            if (style.minHeight) styleStr += `min-height: ${style.minHeight};`;
 
             switch (block.type) {
                 case 'text':
+                    return `<div style="${styleStr}">${config.text || 'No text'}</div>`;
                 case 'heading':
-                    return config.text || 'No text';
+                    return `<h${config.level || 2} style="${styleStr}">${config.text || 'Heading'}</h${config.level || 2}>`;
                 case 'image':
-                    return config.src ? `<img src="${config.src}" style="max-width: 100px;" />` : 'No image';
+                    return config.src ? `<img src="${config.src}" style="max-width: 100px; max-height: 100px; ${styleStr}" />` : 'No image';
                 case 'button':
-                    return `Button: ${config.text || 'Click me'}`;
+                    return `<button style="padding: 8px 16px; border: none; cursor: pointer; ${styleStr}">${config.text || 'Click me'}</button>`;
                 case 'spacer':
-                    return `Spacer: ${config.height || 16}px`;
+                    return `<div style="height: ${config.height || 16}px; background: #f0f0f0; ${styleStr}">Spacer (${config.height || 16}px)</div>`;
                 case 'divider':
-                    return `Divider`;
+                    return `<hr style="border: none; border-top: ${config.thickness || 1}px solid ${config.color || '#e0e0e0'}; ${styleStr}" />`;
                 case 'product_grid':
-                    return `Product Grid (${config.columns || 2} columns)`;
+                    return `<div style="${styleStr}">Product Grid (${config.columns || 2} columns, ${config.source || 'latest'})</div>`;
                 case 'product_list':
-                    return `Product List`;
+                    return `<div style="${styleStr}">Product List (${config.source || 'latest'})</div>`;
                 case 'category_grid':
-                    return `Category Grid (${config.columns || 3} columns)`;
+                    return `<div style="${styleStr}">Category Grid (${config.columns || 3} columns)</div>`;
+                case 'slider':
+                    return `<div style="background: #f5f5f5; padding: 10px; ${styleStr}">Slider/Carousel (${config.images?.length || 0} images)</div>`;
                 case 'cart_items':
-                    return `Cart Items List`;
+                    return `<div style="${styleStr}">Cart Items List</div>`;
                 case 'cart_totals':
-                    return `Cart Totals`;
+                    return `<div style="${styleStr}">Cart Totals</div>`;
                 case 'webview':
-                    return `WebView: ${config.url || 'No URL'}`;
+                    return `<div style="${styleStr}">WebView: ${config.url || 'No URL'}</div>`;
                 case 'shortcode':
-                    return `Shortcode: ${config.shortcode || '[shortcode]'}`;
+                    return `<div style="${styleStr}">Shortcode: ${config.shortcode || '[shortcode]'}</div>`;
+                case 'container':
+                case 'row':
+                case 'column':
+                    return `<div style="min-height: 40px; border: 1px dashed #ccc; ${styleStr}">Container</div>`;
                 default:
-                    return `${block.type} block`;
+                    return `<div style="${styleStr}">${block.type} block</div>`;
             }
         },
 
@@ -684,6 +717,22 @@
 
             this.initPropertyTabs();
             this.initPropertyFields();
+            this.initMediaLibraryButtons();
+        },
+
+        initMediaLibraryButtons() {
+            // Select image button for image blocks
+            $('#psab-sidebar-content').on('click', '.psab-select-image', (e) => {
+                e.preventDefault();
+                const configKey = $(e.currentTarget).data('config-key');
+                this.openMediaLibrary(configKey);
+            });
+
+            // Add images button for slider blocks
+            $('#psab-sidebar-content').on('click', '.psab-add-slider-images', (e) => {
+                e.preventDefault();
+                this.addSliderImageWithLibrary();
+            });
         },
 
         renderPrimaryProperties(block, blockDef) {
@@ -765,7 +814,7 @@
                 html += '<div class="psab-prop-group">';
                 html += '<div class="psab-prop-group__title">Image</div>';
                 html += this.renderVisualField('src', 'Image URL', block.config.src || '', 'text');
-                html += '<button class="psab-button psab-button--secondary" style="margin: 10px 0;" onclick="PSABBuilder.openMediaLibrary(\'src\')">Select Image</button>';
+                html += '<button class="psab-button psab-button--secondary psab-select-image" style="margin: 10px 0;" data-config-key="src">📷 Select Image</button>';
                 html += this.renderVisualField('alt', 'Alt Text', block.config.alt || '', 'text');
                 html += this.renderVisualField('fit', 'Image Fit', block.config.fit || 'cover', 'select', {
                     options: [
@@ -839,7 +888,7 @@
                 html += '<div class="psab-prop-group">';
                 html += '<div class="psab-prop-group__title">Slider Images</div>';
                 html += '<div id="slider-images-list"></div>';
-                html += '<button class="psab-button psab-button--secondary" onclick="PSABBuilder.addSliderImage()">+ Add Image</button>';
+                html += '<button class="psab-button psab-button--secondary psab-add-slider-images">📷 + Add Images</button>';
                 html += '</div>';
 
                 html += '<div class="psab-prop-group">';
@@ -1366,7 +1415,7 @@
         },
 
         initPropertyFields() {
-            const updateBlockConfig = (key, value) => {
+            const updateBlockConfig = (key, value, immediate = false) => {
                 const block = this.currentPageData.page_config.blocks[this.selectedBlock];
 
                 // Handle nested keys like 'style.fontSize'
@@ -1384,45 +1433,79 @@
                     block.config[key] = value;
                 }
 
-                this.renderCanvas();
-                if ($('.psab-builder__preview').is(':visible')) {
-                    this.updatePreview();
+                // Debounce rendering for performance - only re-render after user stops typing
+                if (this.renderDebounceTimer) {
+                    clearTimeout(this.renderDebounceTimer);
+                }
+
+                if (immediate) {
+                    // Immediate render for critical changes (checkbox, select, etc.)
+                    this.renderCanvas();
+                    if ($('.psab-builder__preview').is(':visible')) {
+                        this.updatePreview();
+                    }
+                } else {
+                    // Debounced render for text/number inputs (300ms delay)
+                    this.renderDebounceTimer = setTimeout(() => {
+                        this.renderCanvas();
+                        if ($('.psab-builder__preview').is(':visible')) {
+                            this.updatePreview();
+                        }
+                    }, 300);
                 }
             };
 
-            // Visual field inputs
-            $('#psab-sidebar-content').on('input change', '.psab-visual-field__input, .psab-visual-field__textarea, .psab-visual-field__select', (e) => {
+            // Visual field inputs - debounce text inputs, immediate for selects
+            $('#psab-sidebar-content').on('input', '.psab-visual-field__input, .psab-visual-field__textarea', (e) => {
                 const key = $(e.target).data('key');
                 let value = $(e.target).val();
-                updateBlockConfig(key, value);
+                updateBlockConfig(key, value, false); // Debounced
             });
 
-            // Color picker
-            $('#psab-sidebar-content').on('input change', '.psab-visual-field__color-picker', (e) => {
+            $('#psab-sidebar-content').on('change', '.psab-visual-field__select', (e) => {
+                const key = $(e.target).data('key');
+                let value = $(e.target).val();
+                updateBlockConfig(key, value, true); // Immediate
+            });
+
+            // Color picker - debounced for live updates
+            $('#psab-sidebar-content').on('input', '.psab-visual-field__color-picker', (e) => {
                 const key = $(e.target).data('key');
                 const value = $(e.target).val();
                 $(e.target).siblings('.psab-visual-field__color-text').val(value);
-                updateBlockConfig(key, value);
+                updateBlockConfig(key, value, false); // Debounced
+            });
+
+            $('#psab-sidebar-content').on('change', '.psab-visual-field__color-picker', (e) => {
+                const key = $(e.target).data('key');
+                const value = $(e.target).val();
+                updateBlockConfig(key, value, true); // Immediate on final change
             });
 
             $('#psab-sidebar-content').on('input change', '.psab-visual-field__color-text', (e) => {
                 const key = $(e.target).data('key');
                 const value = $(e.target).val();
                 $(e.target).siblings('.psab-visual-field__color-picker').val(value);
-                updateBlockConfig(key, value);
+                updateBlockConfig(key, value, false); // Debounced
             });
 
-            // Slider
+            // Slider - debounced for smooth dragging
             $('#psab-sidebar-content').on('input', '.psab-visual-field__slider-input', (e) => {
                 const key = $(e.target).data('key');
                 const value = parseFloat($(e.target).val());
                 const $field = $(e.target).closest('.psab-visual-field');
                 const unit = $field.find('.psab-visual-field__slider-value').text().replace(/[0-9.-]/g, '');
                 $field.find('.psab-visual-field__slider-value').text(value + unit);
-                updateBlockConfig(key, value);
+                updateBlockConfig(key, value, false); // Debounced
             });
 
-            // Alignment buttons
+            $('#psab-sidebar-content').on('change', '.psab-visual-field__slider-input', (e) => {
+                const key = $(e.target).data('key');
+                const value = parseFloat($(e.target).val());
+                updateBlockConfig(key, value, true); // Immediate on final value
+            });
+
+            // Alignment buttons - immediate
             $('#psab-sidebar-content').on('click', '.psab-visual-field__alignment-btn', function(e) {
                 e.preventDefault();
                 const key = $(this).data('key');
@@ -1431,14 +1514,14 @@
                 $(this).siblings().removeClass('active');
                 $(this).addClass('active');
 
-                updateBlockConfig(key, value);
+                updateBlockConfig(key, value, true); // Immediate
             });
 
-            // Checkbox inputs
+            // Checkbox inputs - immediate
             $('#psab-sidebar-content').on('change', '.psab-visual-field__checkbox-input', (e) => {
                 const key = $(e.target).data('key');
                 const value = $(e.target).is(':checked');
-                updateBlockConfig(key, value);
+                updateBlockConfig(key, value, true); // Immediate
             });
 
             // Unit field inputs (number + unit select)
@@ -2152,15 +2235,90 @@
             this.renderSliderImages(block.config.images);
         },
 
-        // Helper: Open media library (stub for now - would integrate with WordPress media library)
+        // Helper: Open WordPress media library
         openMediaLibrary(configKey) {
-            const url = prompt('Enter image URL:');
-            if (url) {
-                const block = this.currentPageData.page_config.blocks[this.selectedBlock];
-                block.config[configKey] = url;
-                this.renderProperties();
-                this.renderCanvas();
+            // Check if wp.media is available
+            if (typeof wp === 'undefined' || !wp.media) {
+                alert('WordPress media library is not available.');
+                return;
             }
+
+            // Create media frame if it doesn't exist
+            if (!this.mediaFrame) {
+                this.mediaFrame = wp.media({
+                    title: 'Select Image',
+                    button: {
+                        text: 'Use this image'
+                    },
+                    multiple: false,
+                    library: {
+                        type: 'image'
+                    }
+                });
+
+                // When an image is selected
+                this.mediaFrame.on('select', () => {
+                    const attachment = this.mediaFrame.state().get('selection').first().toJSON();
+                    const block = this.currentPageData.page_config.blocks[this.selectedBlock];
+
+                    // Set the image URL
+                    block.config[configKey] = attachment.url;
+
+                    // Also set alt text if available
+                    if (configKey === 'src' && attachment.alt) {
+                        block.config.alt = attachment.alt;
+                    }
+
+                    this.renderProperties();
+                    this.renderCanvas();
+                    if ($('.psab-builder__preview').is(':visible')) {
+                        this.updatePreview();
+                    }
+                });
+            }
+
+            // Open the media frame
+            this.mediaFrame.open();
+        },
+
+        // Helper: Add slider image with media library
+        addSliderImageWithLibrary() {
+            if (typeof wp === 'undefined' || !wp.media) {
+                alert('WordPress media library is not available.');
+                return;
+            }
+
+            const frame = wp.media({
+                title: 'Select Images for Slider',
+                button: {
+                    text: 'Add to Slider'
+                },
+                multiple: true,
+                library: {
+                    type: 'image'
+                }
+            });
+
+            frame.on('select', () => {
+                const attachments = frame.state().get('selection').toJSON();
+                const block = this.currentPageData.page_config.blocks[this.selectedBlock];
+
+                if (!block.config.images) {
+                    block.config.images = [];
+                }
+
+                attachments.forEach(attachment => {
+                    block.config.images.push({
+                        url: attachment.url,
+                        caption: attachment.caption || ''
+                    });
+                });
+
+                this.renderSliderImages(block.config.images);
+                this.renderCanvas();
+            });
+
+            frame.open();
         },
     };
 

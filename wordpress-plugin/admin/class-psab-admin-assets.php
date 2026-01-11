@@ -42,6 +42,9 @@ class PSAB_Admin_Assets {
             return;
         }
 
+        // Enqueue WordPress media library
+        wp_enqueue_media();
+
         // Enqueue WordPress components
         wp_enqueue_style('wp-components');
         wp_enqueue_script('wp-element');
