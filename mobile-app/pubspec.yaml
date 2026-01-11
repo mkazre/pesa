@@ -28,9 +28,6 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
-  # WooCommerce
-  woocommerce_api: ^0.0.3
-
   # WebView
   webview_flutter: ^4.4.2
   flutter_inappwebview: ^6.0.0
